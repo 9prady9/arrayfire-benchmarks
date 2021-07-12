@@ -29,7 +29,18 @@ void fftBase(benchmark::State& state,
        array outTemp = randu(dims, c64);
    else
        array outTemp = randu(dims, c32);
-   af::sync();
+   {
+       if (fftDim==3) {
+           array out = fft3(in);
+       } else if (fftDim==2) {
+           array out = fft2(in);
+       } else {
+           array out = fft(in);
+       }
+       af::sync();
+   }
+  size_t alloc_bytes, alloc_buffers, lock_bytes, lock_buffers;
+  deviceMemInfo(&alloc_bytes, &alloc_buffers, &lock_bytes, &lock_buffers);
 
   if (fftDim==3) {
       for (auto _ : state) {
@@ -49,6 +60,11 @@ void fftBase(benchmark::State& state,
   }
   af::sync();
 
+  size_t alloc_bytes2, alloc_buffers2, lock_bytes2, lock_buffers2;
+  deviceMemInfo(&alloc_bytes2, &alloc_buffers2, &lock_bytes2, &lock_buffers2);
+
+  state.counters["bytes"] = (alloc_bytes2 - alloc_bytes);
+
   deviceGC();
 }
 
@@ -65,25 +81,38 @@ void fftBench(benchmark::State& state, af_dtype type)
 
 int main(int argc, char** argv)
 {
-    vector<af_dtype> types = {f64, f32};
+  const bool websiteBench = (argc > 1 ? (atoi(argv[1]) > 0) : false);
 
-    af::benchmark::RegisterBenchmark("fft1", types, fftBench)
-        ->RangeMultiplier(2)
-        ->Ranges({{64, 1<<19}, {1, 1}, {1, 1}, {1, 1}})
-        ->ArgNames({"dim0", "dim1", "dim2", "fft_dim"})
-        ->Unit(benchmark::kMicrosecond);
+  const af_backend backend = (argc > 2 ? AF_BACKEND_CPU : AF_BACKEND_DEFAULT);
+  af::setBackend(backend);
 
+  vector<af_dtype> types = {f32};
+  if (!websiteBench) {
+    types.emplace_back(f64);
+  }
+
+  af::benchmark::RegisterBenchmark("fft1", types, fftBench)
+      ->RangeMultiplier(2)
+      ->Ranges({{64, 1 << 25}, {1, 1}, {1, 1}, {1, 1}})
+      ->UseRealTime()
+      ->ArgNames({"dim0", "dim1", "dim2", "fft_dim"})
+      ->Unit(benchmark::kMicrosecond);
+
+  if (!websiteBench) {
     af::benchmark::RegisterBenchmark("fft2", types, fftBench)
         ->RangeMultiplier(2)
-        ->Ranges({{1<<4, 1<<12}, {1<<4, 1<<12}, {1, 1}, {2, 2}})
+        ->Ranges({{1 << 4, 1 << 12}, {1 << 4, 1 << 12}, {1, 1}, {2, 2}})
+        ->UseRealTime()
         ->ArgNames({"dim0", "dim1", "dim2", "fft_dim"})
         ->Unit(benchmark::kMicrosecond);
 
     af::benchmark::RegisterBenchmark("fft3", types, fftBench)
         ->RangeMultiplier(2)
-        ->Ranges({{1<<4, 1<<7}, {1<<4, 1<<7}, {1<<4, 1<<7}, {3, 3}})
+        ->Ranges({{1 << 4, 1 << 7}, {1 << 4, 1 << 7}, {1 << 4, 1 << 7}, {3, 3}})
+        ->UseRealTime()
         ->ArgNames({"dim0", "dim1", "dim2", "fft_dim"})
         ->Unit(benchmark::kMicrosecond);
+  }
 
     benchmark::Initialize(&argc, argv);
 

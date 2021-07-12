@@ -73,6 +73,14 @@ addBenchmark(sort)
 addBenchmark(stdev)
 addBenchmark(rotate)
 addBenchmark(iterative_deconvolution)
+addBenchmark(transpose)
+addBenchmark(svd)
+addBenchmark(lu)
+addBenchmark(solve)
+addBenchmark(separable_conv)
+addBenchmark(convolve_1d)
+addBenchmark(sum)
+addBenchmark(scan)
 
 mark_as_advanced(
   BENCHMARK_BUILD_32_BITS

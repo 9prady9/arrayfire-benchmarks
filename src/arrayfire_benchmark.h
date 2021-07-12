@@ -47,6 +47,8 @@ namespace benchmark {
     BenchmarkCollection* MinTime(double t);
     BenchmarkCollection* Apply(void (*func)(::benchmark::internal::Benchmark* benchmark));
     BenchmarkCollection* Iterations(size_t n);
+    BenchmarkCollection *UseRealTime();
+    BenchmarkCollection *MeasureProcessCPUTime();
   };
 
   class AFReporter : public ::benchmark::ConsoleReporter {

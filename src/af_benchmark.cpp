@@ -41,6 +41,16 @@ namespace af {
     BenchmarkCollection* BenchmarkCollection::MinTime(double t)                                               { for(auto& b : benchmarks_) b->MinTime(t); return this; }
     BenchmarkCollection* BenchmarkCollection::Apply(void (*func)(::benchmark::internal::Benchmark* benchmark)){ for(auto& b : benchmarks_) b->Apply(func); return this; }
     BenchmarkCollection* BenchmarkCollection::Iterations(size_t n)                                            { for(auto& b : benchmarks_) b->Iterations(n); return this; }
+    BenchmarkCollection *BenchmarkCollection::UseRealTime() {
+      for (auto &b : benchmarks_)
+        b->UseRealTime();
+      return this;
+    }
+    BenchmarkCollection *BenchmarkCollection::MeasureProcessCPUTime() {
+      for (auto &b : benchmarks_)
+        b->MeasureProcessCPUTime();
+      return this;
+    }
   }
 
 }
